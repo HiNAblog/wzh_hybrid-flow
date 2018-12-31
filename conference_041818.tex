@@ -129,7 +129,7 @@ ECN& medium&  yes& fast \\
 
 \item It is widely used in data center networks.
 
-\item The response to sudden flow is relatively rapid and can be achieved without loss or near loss.
+\item The response to sudden flow is relatively rapid .
 
 \item Can be collected more conveniently.
 
@@ -216,7 +216,7 @@ At the beginning of the experiment, we hope to obtain congestion information thr
 \ENDIF
 \IF{$ECN\_ratio \leqslant target\_ECN\_ratio$}
         \STATE (increasing phase)
-        \STATE $ECN\_\alpha = （1-g）* ECN\_\alpha+g * ECN\_ratio$;
+        \STATE $ECN\_\alpha = (1-g)* ECN\_\alpha+g * ECN\_ratio$;
         \STATE $now\_rate = tmp\_rate*(1+(target\_ECN\_ratio +ECN\_\alpha) / 2)$;
 \ELSE
         \STATE (decreasing phase)
@@ -227,10 +227,10 @@ At the beginning of the experiment, we hope to obtain congestion information thr
 \end{algorithmic}
 \end{algorithm}
 \indent However, through experiments, we found that the packet loss rate must cause a small amount of packet loss, which leads to a large amount of overhead, which is not suitable in modern data center networks, and we are the first to give up.\\
-\indent We next aimed at RTT as a congestion control flag. The RTT is easy to obtain and can reflect the congestion status of the link. We use the TIMELY algorithm to design a hybrid-flow congestion control mechanism based on RTT. Through experiments, we found that the RTT-based mechanism has the following problems in controlling hybrid-flow:
+\indent We next aimed at RTT as a congestion control flag. The RTT is easy to obtain and can reflect the congestion status of the link. We use the TIMELY\cite{mittal2015timely} algorithm to design a hybrid-flow congestion control mechanism based on RTT. Through experiments, we found that the RTT-based mechanism has the following problems in controlling hybrid-flow:
 \begin{itemize}
 \item  In the case of no queuing and stability, the RTT congestion control mechanism will notify the corresponding source node to increase the transmission rate. For proactive congestion control, the resources are already allocated, so it makes no sense. In this case, it is necessary to introduce a timeout deceleration mechanism, which causes inefficiency.
-\item The RTT-based algorithm needs to be configured separately for deployment to different servers. Because the transmission paths between the servers are different, the target RTT is not the same. This brings trouble to the server user.
+\item The value of RTT may vary greatly depending on the path,so RTT-based algorithm must be configured separately for deployment to different servers. Because the transmission paths between the servers are different, the target RTT is not the same. This brings trouble to the server user.
 \item The target minimum RTT and the target maximum RTT difference are small, and the burst traffic often "breaks down" the target value domain, causing the traffic bandwidth to swing excessively.
 \end{itemize}
 \indent Finally, we choose ECN as the congestion control flag. The ECN tag has the following advantages:
@@ -241,9 +241,9 @@ At the beginning of the experiment, we hope to obtain congestion information thr
 \end{itemize}
 \indent congestion control of hybrid-flow can improve the compatibility between different protocols in the hybrid-flow network by utilizing ECN.\\
 \indent For some protocols, it is not necessary to adjust your traffic in real time based on congestion conditions. Not using a unified congestion control flag, sometimes the computational cost can be reduced, but in a hybrid-flow network it often leads to unfairness. Through evaluation, we found that using ECN as a congestion flag only adds a small amount of computational cost, but it improves overall network performance. Of course, it is not enough to use ECN as a unified congestion control flag. We also need to improve the internal architecture of the protocol, adjust the parameters of each protocol, and ensure the fairness between the various protocols.
-\subsection{Switch and End-Host Design Link Capacity Allocation}
+\subsection{Switch and End-Host Design}
 \begin{itemize}
-\item  congestion control of hybrid-flow mechanism retains the credit channel of proactive congestion control. Since it is guaranteed that when the network is all based on the credit-based scheduling mechanism, the credit channel bandwidth still accounts for 84/(84+1538)≈0.05
+\item  Link Capacity Allocation:congestion control of hybrid-flow mechanism retains the credit channel of proactive congestion control. Since it is guaranteed that when the network is all based on the credit-based scheduling mechanism, the credit channel bandwidth still accounts for 84/(84+1538)$\approx$\%5.
     of the total bandwidth. For the remaining 0.95 of the packet bandwidth requirements, the ECN label is applied to packets that exceed the threshold indiscriminately in the switch and End-host design.
 \item ECN-based Rate-limiting:In response to burst traffic, we set several thresholds for shallow buffers. When burst traffic is large or even causes packet loss, we put ECN flags on all packets to reduce the packet transmission rate as soon as possible. When alerting the threshold, we randomly tag some packets with ECN tags so that the queue length is maintained within a reasonable range.
 \item Ensuring fair deceleration:For the receiver, it is more important to deal with the ECN-tagged packets. The DCTCP and other packets will return ACK packets to the source node according to the ECN packets. This is the mainstream practice in data center networks. For the recently credit-based congestion control algorithm, we hope to reduce the credit transmission rate according to the received ECN data packet, thereby achieving the purpose of reducing the packet transmission rate. In this design, the key is to design a reasonable algorithm, select the appropriate parameters, so that different fair can reduce the rate fairly.
@@ -264,7 +264,7 @@ Through our design, we have achieved good results in three aspects
 \paragraph{Fairness}In terms of fairness, we designed a multi-bottleneck link as shown in Figure 3(a). The three curves represent the flow0 without being scheduled by the congestion control of hybrid-flow mechanism; flow0 running DCTCP protocol that is scheduled and flow0 running ExpressPass protocol that is scheduled.\\
 \indent From Figure 3(b) topology we can see that flow 0 is almost starved to death as a DCTCP flow before it is scheduled, but it can get 2/N ratio of bandwidth as ExpressPass flow. However, after the scheduling, whether it is an ExpressPass flow or a DCTCP flow, the bandwidth obtained by this flow is approximately 1/N. It can be seen that the hybrid-flow of congestion control mechanism achieves fairness globally.
 \paragraph{Fast Convergence}In order to verify the convergence of different flows, we designed different experiments in the topology shown in Figure 1. The first experiment was to insert ExpressPass traffic at time t when DCTCP traffic was running in the experiment. Experiments have shown that it takes about 60ms to complete the convergence. In order to ensure fairness, we sacrificed the advantages of some ExpressPass fast convergence, but still achieved better performance than DCTCP. The second experiment was to run ExpressPass traffic during the experiment and insert DCTCP traffic at time t. Experiments have shown that it takes about 70ms to complete the convergence. It can be seen that the performance of each protocol is not affected in terms of convergence.
-\paragraph{Utilization} To demonstrate the full utilization of the multi-hybrid flow congestion control mechanism. We have designed the topology shown in Figure 4(a), and we gradually increase the number of bottleneck topologies, from one to six. Mixed traffic runs on each bottleneck link. We compared the utilization of DCTCP traffic and ExpressPass traffic on multiple bottleneck links. By comparison, we find that multi-hybrid flow in the case of multi-bottleneck links, the utilization rate is still high through the mechanism proposed in this paper.
+\paragraph{Utilization} To demonstrate the full utilization of the multi-hybrid flow congestion control mechanism. We have designed the topology shown in Figure 4(a), and we gradually increase the number of bottleneck topologies, from one to six. Hybrid traffic runs on each bottleneck link. We compared the utilization of DCTCP traffic and ExpressPass traffic on multiple bottleneck links. By comparison, we find that multi-hybrid flow in the case of multi-bottleneck links, the utilization rate is still high through the mechanism proposed in this paper.
 \section{ANALYSIS}
 Below we provide analysis for the congestion control of hybrid-flow. We will demonstrate that our mechanism will stabilize intranet traffic using a discrete model fairly.\\
 \indent In this analysis, we will assume that N $(N>1)$ credit-based flows and M$(M>1)$ ECN-based traffic share a bottleneck link bandwidth and their update cycle synchronization is consistent with other studies. Verify credit-based traffic and ECN-based traffic stability respectively and verify fairness between them.
