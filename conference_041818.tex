@@ -44,21 +44,21 @@ In recent years, with the increase in the size and link speed of data center net
 
 \indent Reactive congestion control uses ECN flag\cite{Alizadeh2010Data}\cite{Alizadeh2012Less}\cite{wu2010ictcp} \cite{zhu2015congestion}or network delay\cite{lee2015accurate}\cite{mittal2015timely}\cite{perry2015fastpass} as a signal to feed back a signal to the sender when congestion occurs to lower congestion window(cwnd). Reactive congestion control technology combined with technologies such as slow start and fast retransmission\cite{stevens1997tcp} has achieved good performance evaluation in suppressing congestion caused by bursty traffic\cite{benson2010network}\cite{Alizadeh2010Data}.
 
-\indent In contrast, proactive congestion control signals the maximum rate that the sender can send according to the maximum transmission rate that the receiver and the switch can bear\cite{huang2018congestion}. The proactive congestion control method excels in traffic models where long traffic accounts for the main components.
+\indent In contrast, proactive congestion control signals the maximum rate that the bottleneck link can send according to the maximum transmission rate that the bottleneck link can bear\cite{huang2018congestion}. The proactive congestion control method excels in traffic models where long traffic accounts for the main components.
 
-\indent These algorithms have their own advantages and disadvantages, and they also have different application scenarios. With the popularity of multi-tenant networks, different users under each server run different congestion control algorithms, which poses challenges for end-to-end congestion control. Fortunately, the concept of v-switch allows the traffic of different tenants under one server to be re-adjusted at the v-switch layer to reach the appearance.It seems that the entire server runs the same protocol\cite{He2016AC}.
+\indent These algorithms have their own pros and cons, and they also have different application scenarios. With the popularity of multi-tenant networks, different users under each server run different congestion control algorithms, which poses challenges for end-to-end congestion control. Fortunately, the concept of v-switch allows the traffic of different tenants under one server to be re-adjusted at the v-switch layer to reach the appearance.It seems that the entire server runs the same protocol\cite{He2016AC}.
 
-\indent However, the congestion control protocols that are running on each server in a data center network may vary. Many of the congestion control algorithms have achieved great results, but their evaluations are based on deploying protocol control algorithms to all networks. In an actual network, not all servers deploy the same protocol. In the next part, the data center network running different protocols in the actual network environment is introduced. The various protocols running on the data center network interfere with each other. A data center network that mixes various protocols has poorer network performance than a single protocol.
+\indent However, the congestion control protocols that are running on each server in a data center network may vary. Many of the congestion control algorithms have achieved great results, but their evaluations are based on deploying protocol to entire networks. In an actual network, not all servers deploy the same protocol. In the next part, the data center network running different protocols in the actual network environment is introduced. The various protocols running on the data center network interfere with each other. A data center network that mixs various protocols has poorer network performance than a single protocol.
 
-\indent For proactive congestion control, they only consider the bottleneck link resources in the network, and do not dynamically adjust his transmission rate according to the real-time congestion in the network\cite{perry2015fastpass}\cite{gao2015phost}\cite{cho2017credit}. The reactive congestion control is exactly the opposite.  The problems caused by the difference between the two types of congestion control are: different flows can be paralleled in one network, and the bottleneck links are unaffected by each flows is an insurmountable issue.
+\indent For proactive congestion control, they only consider the bottleneck link resources in the network, and do not need to dynamically adjust his transmission rate according to the real-time congestion in the network\cite{perry2015fastpass}\cite{gao2015phost}\cite{cho2017credit}. The reactive congestion control is exactly the opposite.  The problems caused by the difference between the two types of congestion control are: different flows can be paralleled in one network, and the bottleneck links are unaffected by each flows is an insurmountable issue.
 
-\indent This article innovates hybrid-flow congestion control for data center by integrating algorithms based on reactive congestion control and algorithms based on proactive congestion control.
+\indent This article innovates SCM for DCNs by harmonizing algorithms based on reactive congestion control or proactive congestion control.
 
 \indent As we know, the feature of proactive congestion control scheme is that packets are rarely queued at the switch. Because of this feature, proactive congestion control does not require real-time network congestion control information. However, in a real network environment, because other traffic often arrives suddenly, the data packets based on proactive congestion control also have to face queue problems.
 
-\indent Based on this, congestion control of hybrid-flow is proposed.
+\indent Based on this, symbiotic congestion management is proposed.
 
-\indent The idea of implementing congestion control of hybrid-flow mechanism seems simple, but it's actually not easy. Someone may think that the congestion status can be reflected by any congestion control flag, and the network packet congestion can be avoided by adjusting the packet transmission rate in real time according to the change of the congestion control flag.
+\indent The idea of implementing symbiotic congestion management seems simple, but it's actually not easy. Someone may think that the congestion status can be reflected by any congestion control flag, and the network packet congestion can be avoided by adjusting the packet transmission rate in real time according to the change of the congestion control flag.
 
 \indent But we should first solve a problem: choose which congestion control flag to deploy to the hybrid network.
 
@@ -74,7 +74,7 @@ In recent years, with the increase in the size and link speed of data center net
 
 \end{itemize}
 
-\indent Congestion control of hybrid-flow focuses on the above issues, and in response to the challenges posed by multi-hybrid flow, several key design options have been proposed. The corresponding design points are as follows:
+\indent SCM focuses on the above issues, and in response to the challenges posed by multi-hybrid flow, several key design options have been proposed. The corresponding design points are as follows:
 
 \begin{itemize}
 
@@ -82,7 +82,7 @@ In recent years, with the increase in the size and link speed of data center net
 
 \item Set the appropriate threshold on the queue and mark all the packets that exceed the threshold with ECN. Doing so can distribute resources fairly.
 
-\item When the switch or host become a hot spot, for the data packet controlled by the reactive congestion control protocol, the corresponding sending window is lowered according to the ECN data packet. For proactive congestion control protocol, the credit transmission rate is correspondingly reduced according to the proportion of ECN data packets in all data packets.
+\item When the switch or host become a hot bottleneck link, for the data packet controlled by the reactive congestion control protocol, the corresponding sending window is lowered according to the ECN data packet. For proactive congestion control protocol, the credit transmission rate is correspondingly reduced according to the proportion of ECN data packets in all data packets.
 
 \end{itemize}
 
@@ -97,7 +97,7 @@ A data center network often contains millions of connections\cite{Alizadeh2010Da
 \indent Consider the simple topology as shown in Figure 1, in which a flow of the same mode as flow 1 is scheduled by proactive congestion control algorithm (e,g.ExpressPass\cite{cho2017credit}), and other flow of the same type as flow N are subject to reactive congestion control algorithm (e.g. DCTCP\cite{Alizadeh2010Data}), in these topologies, when these servers running different protocols send data to their respective receivers, link 1 becomes the bottleneck link.\\
 \indent In theory, when the traffic based on proactive congestion control algorithm meets the traffic based on reactive congestion control algorithm, traffic based on the proactive congestion control algorithm does not decelerate due to bottleneck link congestion, but when the bottleneck link is congested.  The switch will pass congestion information to the sender in various ways to alert the sender to reduce the transmission rate. Finally, the process based on the proactive congestion control algorithm preempts all resources of the bottleneck link.\\
 \indent To validate our analysis, we designed a experiment on the topology shown in Figure 1. How to allocate link 1 is the key to the issue.\\
-\indent We used OMNET\cite{pongor1993omnet} to perform our simulation experiments. For proactive congestion control we use ExpressPass\cite{cho2017credit} as an example, and for reactive congestion control we use DCTCP\cite{Alizadeh2010Data} as an example. Each sender continuously keeps the data packet to the receiving end 2000B within the set time. At the same time, the receiver based on the credit schedule sends a credit of size 84B to the corresponding sender for ExpressPass. In the first experiment, ExpressPass traffic was inserted at time t in a data center network running DCTCP. In the second experiment, DCTCP traffic was inserted at time t in a data center network running a steady flow of ExpressPass traffic.     The link speed is 10Gbps and the delay is 5 $\mu$s.\\
+\indent We used OMNET\cite{pongor1993omnet} to perform our simulation experiments. For proactive congestion control we use ExpressPass\cite{cho2017credit} as an example, and for reactive congestion control we use DCTCP\cite{Alizadeh2010Data} as an example. Each sender continuously keeps the data packet to the receiving end 2000B within the set time. At the same time, the receiver based on the credit schedule sends a credit of size 84B to the corresponding sender for ExpressPass. In the first experiment, ExpressPass traffic was inserted at time t in a data center network running DCTCP. In the second experiment, DCTCP traffic was inserted at time t in a data center network running a steady flow of ExpressPass traffic. The link speed is 10Gbps and the delay is 5 $\mu$s.\\
 \indent The results of the two experiments are shown in Figure 2. From the results, we can clearly see that the flow based on credit scheduling reflects its strong encroachment whether it is simultaneous concurrent flow or late inserting flow. Flow based on credit scheduling can quickly occupy bottleneck resources, while other flow can only "starve" when resources are used based on credit scheduling. We hope to achieve better evaluation performance on the following issues when solving this practical problem.
 
 \subsection{Unified Congestion Control Flag}
@@ -141,19 +141,19 @@ ECN& medium&  yes& fast \\
 
 
 
-Is it fair to just choose a unified congestion control flag? Of course, we must improve the original algorithm so that different protocols use the same flags to perform congestion control in different ways. For example, for the data packet based on the ECN control, the transmission window of the transmitting end is correspondingly reduced; and for the data packet based on the credit control, according to the ratio of the data packet marked by the ECN to the total arriving data packet, the credit transmission rate is correspondingly reduced, not only based on the loss rate of credit.
+Is it fair to just choose a unified congestion control flag? Of course, we must improve the original algorithm so that different protocols use the same flags to perform congestion control in different ways. For example, for the data packet based on the ECN control, the transmission window of the transmitting end is correspondingly reduced; and for the data packet based on the credit, according to the ratio of the data packet marked by the ECN to the total arriving data packet, the credit transmission rate is correspondingly reduced, not only based on established resource allocation.
 
 
 
 
 
-\subsection{Bottleneck link utilization}
+\subsection{Queue Build-up}
 
-Many people may be afraid of excessive congestion control, which may result in under-utilization of the link. In order to make full use of the link, when a certain bottle in the bottleneck link no longer uses the bottleneck link, the transmission rate of other flow must be rapidly increased to fully utilize the resources of the link. Our mechanism hopes to aggressively send packets from the source node to the destination node to ensure link utilization. We will experimentally evaluate the parameters that will make the bottleneck utilization the fastest convergence without causing queue build up.
+The establishment of bounded queues can avoid packet loss as much as possible.In an unscheduled network environment, queuing or even packet loss due to unfairness is very common.In addition, in SCM, when a link is expected to be a bottleneck link, a certain queue should be maintained. Doing so ensures that bandwidth utilization can also promote convergence.A bounded queue can avoid packet loss and increase link activity.
 
 
 
-\subsection{Fast convergence}
+\subsection{Convergence and Synchronization}
 
 
 
